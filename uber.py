@@ -20,3 +20,5 @@ data_load_state = st.text("Loading Data...")
 data = load_data(10000)
 data_load_state = st.text("Loading Data... Done!")
 
+st.subheader("Raw Data")
+st.write(data)
