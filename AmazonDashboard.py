@@ -1,0 +1,99 @@
+# amazon_dashboard.py
+
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# LOADING DATA
+
+#amazon = pd.read_csv("Amazon_cleaned.csv")
+#amazon['Timestamp'] = pd.to_datetime(amazon['Timestamp'])
+
+
+
+# LOADING FROM GOOGLE DRIVE
+file_id = "17D4TH9TpEvh1QHaVj9QVt65a8EtBg7xu"
+url = f"https://drive.google.com/uc?export=download&id={file_id}"
+
+amazon = pd.read_csv(url)
+amazon['Timestamp'] = pd.to_datetime(amazon['Timestamp'])
+
+
+
+
+st.set_page_config(
+    page_title="Amazon Dashboard (65+ Users)",
+    layout="wide"
+)
+
+
+# TITLE
+
+st.title("Amazon Ratings Dashboard")
+
+st.markdown(
+    "Interactive visualizations showing top products, ratings, and user activity in a senior-friendly design."
+)
+
+
+# TOP PRODUCTS BY RATINGS
+
+st.header("Top 10 Highest-Rated Products")
+top_products = (
+    amazon.groupby("ProductId")["Rating"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(10)
+)
+fig1 = px.bar(
+    x=top_products.index,
+    y=top_products.values,
+    labels={"x": "Product ID", "y": "Average Rating"},
+    title="Highest-Rated Products",
+    color=top_products.values,
+    color_continuous_scale="Blues"
+)
+st.plotly_chart(fig1, use_container_width=True)
+
+
+# RATINGS DISTRIBUTION
+
+st.header("Distribution of Ratings")
+fig2 = px.histogram(
+    amazon,
+    x="Rating",
+    nbins=10,
+    title="Rating Distribution",
+    color_discrete_sequence=["#636EFA"]
+)
+st.plotly_chart(fig2, use_container_width=True)
+
+
+# USER ACTIVITY
+
+st.header("Top 10 Most Active Users")
+top_users = amazon['UserId'].value_counts().head(10)
+fig3 = px.bar(
+    x=top_users.index,
+    y=top_users.values,
+    labels={"x": "User ID", "y": "Number of Ratings"},
+    title="Most Active Users",
+    color=top_users.values,
+    color_continuous_scale="Viridis"
+)
+st.plotly_chart(fig3, use_container_width = True)
+
+
+# RATINGS OVER TIME
+
+st.header("Ratings Over Time")
+ratings_time = amazon.groupby(amazon['Timestamp'].dt.to_period("M"))['Rating'].mean().reset_index()
+ratings_time['Timestamp'] = ratings_time['Timestamp'].dt.to_timestamp()
+fig4 = px.line(
+    ratings_time,
+    x="Timestamp",
+    y="Rating",
+    labels={"Timestamp": "Month", "Rating": "Average Rating"},
+    title="Average Ratings Over Time"
+)
+st.plotly_chart(fig4, use_container_width=True)
